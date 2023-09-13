@@ -13,7 +13,7 @@ namespace TestConsoleApp
                 {
                     client.DefaultRequestHeaders.Add("User-Agent", "MyTestApp");
 
-                    var response = await client.GetAsync($"https://newsapi.org/v2/everything?q={_config.KeyWord}&apiKey={_config.Key}");
+                    var response = await client.GetAsync($"https://newsapi.org/v2/everything?q={_config.KeyWord}&apiKey={_config.Key}&language={_config.Language}");
 
                     var responseBody = await response.Content.ReadAsStringAsync();
 
@@ -35,7 +35,11 @@ namespace TestConsoleApp
                             {
                                 foreach (string word in words)
                                 {
-                                    int vowelCount = CountVowels(word);
+                                    int vowelCount = CountVowels(word, _config.Language);
+
+                                    if (vowelCount == -1)
+                                        throw new Exception("Incorrect language " + _config.Language);
+
                                     if (vowelCount > maxVowelCount)
                                     {
                                         maxVowelCount = vowelCount;
@@ -46,20 +50,35 @@ namespace TestConsoleApp
                             }
                         }
                     }
-
-
                 }
+
                 catch (HttpRequestException e)
                 {
                     Console.WriteLine($"Error: {e.Message}");
                 }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
         }
 
-        public static int CountVowels(string word)
+        public static int CountVowels(string word, string language)
         {
             int count = 0;
-            char[] vowels = { 'а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я' };
+
+            char[] vowels = Array.Empty<char>();
+
+            if (language == "ru")
+            {
+                vowels = new char[] { 'а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я' };
+            }
+            else if (language == "en")
+            {
+                vowels = new char[] { 'a', 'e', 'i', 'o', 'u' };
+            }
+            else
+                return -1;
 
             foreach (char c in word)
             {
